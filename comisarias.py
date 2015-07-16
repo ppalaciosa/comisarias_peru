@@ -1,6 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import requests
 import urllib2
 from bs4 import BeautifulSoup
+import json
+
 url = "https://www.mininter.gob.pe/serviciosMAPA-DIRECTORIO-DE-COMISARIAS"
 
 request = urllib2.Request(url)
@@ -13,9 +17,7 @@ r = urllib2.urlopen(request)
 soup = BeautifulSoup(r.read().decode('utf-8'))
 container = soup.find(id="accordion")
 
-# Quitando los elementos vacios
-#raw = [x for x in container.contents if str(x).strip()]
-
+# Lista vacia sobre la cual trabajaremos
 x={}
         
 # Limpiando la data con lo que nos interesa. 
@@ -47,7 +49,7 @@ for item_reg in regiones:
             #Nombre de distrito
             if m % 2 == 0:
                 distrito = distritos[m].text
-                x[region][provincia][distrito] = {}
+                x[region][provincia][distrito] = []
 
             #Contenido de distrito - COMISARIAS
             comisarias = item_dist.find_all("div", {"class": "content"})
@@ -58,9 +60,14 @@ for item_reg in regiones:
                 telefono = item_comi.contents[5].text
                 
 
-                x[region][provincia][distrito][n] = {"Comisaria": comisaria, "Direccion": direccion, "Telefono": telefono}
+                x[region][provincia][distrito].append({"Comisaría": comisaria, 
+                                                       "Dirección": direccion, 
+                                                       "Teléfono": telefono})
 
-            
 
-#print x
-    
+# Abriendo archivo para escritura
+out_file = open("comisarias.json","w")
+# Grabando con indentado 4
+json.dump(x,out_file, indent=4)      
+# Cerrando el archivo
+out_file.close()
